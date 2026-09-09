@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GroqBot 2.0 | Nebula AI Assistant</title>
+    <meta name="description" content="Nebula AI — High-performance multimodal AI assistant powered by Groq LPU with voice interaction, document & audio intelligence, and NLP programming.">
+    <meta name="theme-color" content="#070B14">
+
+    <!-- Google Fonts: Inter and JetBrains Mono for code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css" id="hljs-theme">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=nebula3">
+<body>
+    <!-- Interactive Kinetic Grid Canvas Mesh -->
+    <canvas id="kineticGridCanvas" class="kinetic-grid-canvas"></canvas>
+
+    <div class="app-layout" id="appLayout">
+        <!-- Sidebar Backdrop (Mobile) -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <span class="nebula-spark">✦</span>
+                    </div>
+                    <div class="brand-info">
+                        <span class="brand-title">GroqBot</span>
+                        <span class="brand-subtitle">AI Assistant</span>
+                    </div>
+                </div>
+                <button class="icon-btn close-sidebar-btn" id="closeSidebarBtn" title="Close sidebar" aria-label="Close sidebar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <button class="new-chat-btn" id="newChatBtn">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>New Chat</span>
+            </button>
+
+            <div class="history-search-wrapper">
+                <input type="text" id="historySearchInput" class="search-input" placeholder="🔍 Search...">
+            </div>
+
+            <div class="sessions-container">
+                <div class="sessions-header">
+                    <span>RECENT</span>
+                    <button class="text-btn clear-all-btn" id="clearAllSessionsBtn" title="Clear all history">Clear</button>
+                </div>
+                <div class="sessions-list" id="sessionsList">
+                    <!-- Dynamic session items injected here -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator-badge" id="apiStatusBadge" title="Groq API connection status">
+                    <span class="status-dot connected"></span>
+                    <span class="status-text" id="apiStatusText">Connected</span>
+                </div>
+
+                <div class="footer-actions">
+                    <button class="footer-btn" id="openSettingsBtn" title="Settings">
+                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span>Settings</span>
+                    </button>
+                    <button class="footer-btn" id="quickThemeBtn" title="Theme">
+                        <span>◐</span>
+                        <span id="activeThemeLabel">Dark</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="chat-main">
+            <!-- Top Navbar -->
+            <header class="top-nav">
+                <div class="nav-left">
+                    <button class="icon-btn mobile-menu-btn" id="openSidebarBtn" title="Open menu" aria-label="Open sidebar">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+
+                    <!-- Model Selector -->
+                    <div class="select-pill-wrapper">
+                        <select id="modelSelect" class="select-pill" title="Select Groq LLM Model">
+                            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Recommended)</option>
+                            <option value="groq/compound">Groq Compound (Ultra Fast)</option>
+                            <option value="openai/gpt-oss-120b">GPT-OSS 120B (120B)</option>
+                            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Efficient)</option>
+                        </select>
+                        <span class="select-chevron">▼</span>
+                    </div>
+
+                    <!-- Persona / Mode Selector -->
+                    <div class="select-pill-wrapper">
+                        <select id="personaSelect" class="select-pill" title="Select Assistant Persona">
+                            <option value="general">💬 General Assistant</option>
+                            <option value="coder">💻 NLP & Code Engineer</option>
+                            <option value="analyst">🎯 Accurate & Analytical</option>
+                            <option value="creative">🎨 Creative Content Creator</option>
+                        </select>
+                        <span class="select-chevron">▼</span>
+                    </div>
+
+                    <!-- Language Selector -->
+                    <div class="select-pill-wrapper">
+                        <select id="languageSelect" class="select-pill" title="Select Language">
+                            <option value="auto">🌐 Auto Language</option>
+                            <option value="en">🇺🇸 English</option>
+                            <option value="es">🇪🇸 Español</option>
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="de">🇩🇪 Deutsch</option>
+                            <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                            <option value="zh">🇨🇳 中文 (Chinese)</option>
+                            <option value="ar">🇸🇦 العربية (Arabic)</option>
+                            <option value="ja">🇯🇵 日本語 (Japanese)</option>
+                            <option value="pt">🇧🇷 Português</option>
+                            <option value="ru">🇷🇺 Русский</option>
+                            <option value="it">🇮🇹 Italiano</option>
+                        </select>
+                        <span class="select-chevron">▼</span>
+                    </div>
+                </div>
+
+                <div class="nav-right">
+                    <button class="action-btn" id="exportChatBtn" title="Export conversation to Markdown">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Export</span>
+                    </button>
+                    <button class="action-btn" id="clearChatBtn" title="Reset current conversation">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- API Key Missing Notification Banner -->
+            <div class="alert-banner hidden" id="missingKeyBanner">
+                <div class="alert-content">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" class="alert-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span><strong>Groq API Key Required:</strong> Add your key to the <code>.env</code> file or click below to save it instantly.</span>
+                </div>
+                <button class="banner-btn" id="bannerConfigureBtn">Add Key</button>
+            </div>
+
+            <!-- Chat Scroll Container -->
+            <div class="chat-container" id="chatContainer">
+                <!-- Welcome Screen (Nebula Redesign) -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="nebula-stars-header">
+                        <span class="star-accent">✦</span>
+                        <span class="star-dot">·</span>
+                        <span class="star-accent-sm">✧</span>
+                    </div>
+
+                    <div class="welcome-badge">
+                        <span>✨</span>
+                        <span class="badge-text">GROQBOT 2.0</span>
+                    </div>
+
+                    <h1 class="welcome-title">Your Multimodal AI Assistant</h1>
+                    <p class="welcome-desc">Ask questions • Analyze files • Use your voice</p>
+
+                    <!-- Interactive Hero Prompt Box -->
+                    <div class="welcome-prompt-box" id="welcomePromptTrigger">
+                        <div class="prompt-box-inner">
+                            <div class="prompt-box-headline">
+                                <span class="sparkle-icon">✨</span>
+                                <span>"What can I help you with?"</span>
+                            </div>
+                            <div class="prompt-box-actions">
+                                <button class="hero-action-pill" id="heroUploadBtn" type="button">
+                                    <span class="pill-icon">📎</span>
+                                    <span>Upload</span>
+                                </button>
+                                <button class="hero-action-pill" id="heroVoiceBtn" type="button">
+                                    <span class="pill-icon">🎙️</span>
+                                    <span>Voice</span>
+                                </button>
+                                <button class="hero-action-pill primary" id="heroFocusInputBtn" type="button">
+                                    <span class="pill-icon">✨</span>
+                                    <span>Ask AI</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Grid -->
+                    <div class="quick-actions-section">
+                        <div class="quick-actions-grid">
+                            <button class="quick-action-card" data-prompt="Explain how neural networks learn with forward pass and backpropagation using an intuitive step-by-step analogy.">
+                                <div class="qa-icon-wrapper">🧠</div>
+                                <div class="qa-text">
+                                    <strong>Learn</strong>
+                                    <span>Explain concepts</span>
+                                </div>
+                                <span class="qa-arrow">→</span>
+                            </button>
+
+                            <button class="quick-action-card" data-prompt="Write a complete, production-ready Python script with clean architecture, error handling, and unit tests to solve: ">
+                                <div class="qa-icon-wrapper">💻</div>
+                                <div class="qa-text">
+                                    <strong>Code</strong>
+                                    <span>Build & debug</span>
+                                </div>
+                                <span class="qa-arrow">→</span>
+                            </button>
+
+                            <button class="quick-action-card" id="quickActionAnalyzeCard" data-prompt="Analyze this uploaded file and extract its primary insights with structured takeaways.">
+                                <div class="qa-icon-wrapper">📄</div>
+                                <div class="qa-text">
+                                    <strong>Analyze</strong>
+                                    <span>Upload a file</span>
+                                </div>
+                                <span class="qa-arrow">→</span>
+                            </button>
+
+                            <button class="quick-action-card" data-prompt="Generate a compelling, high-converting product launch announcement with engaging social copy and clear calls to action.">
+                                <div class="qa-icon-wrapper">✨</div>
+                                <div class="qa-text">
+                                    <strong>Create</strong>
+                                    <span>Generate ideas</span>
+                                </div>
+                                <span class="qa-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Try Asking Section -->
+                    <div class="try-asking-section">
+                        <span class="try-asking-label">Try asking</span>
+                        <div class="try-asking-chips">
+                            <button class="try-chip" data-prompt="Explain neural networks simply with an intuitive analogy.">
+                                <span>🧠 Explain AI</span>
+                            </button>
+                            <button class="try-chip" id="tryChipPdf" data-prompt="Summarize the uploaded PDF document and extract the top 5 action items.">
+                                <span>📄 Analyze a PDF</span>
+                            </button>
+                            <button class="try-chip" data-prompt="Write a complete Python script using Flask to create a high-performance REST API with authentication.">
+                                <span>💻 Write code</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Powered by Groq -->
+                    <div class="welcome-footer-badge">
+                        <span class="groq-dot"></span>
+                        <span>Powered by Groq</span>
+                    </div>
+                </div>
+
+                <!-- Messages List -->
+                <div class="messages-list" id="messagesList"></div>
+            </div>
+
+            <!-- Input Container -->
+            <div class="input-container">
+                <!-- Attachments Tray -->
+                <div class="attachments-tray" id="attachmentsTray"></div>
+
+                <div class="input-card" id="inputCard">
+                    <textarea 
+                        id="chatInput" 
+                        class="chat-textarea" 
+                        placeholder="Ask GroqBot anything... (Shift+Enter for newline, 🎙️ for voice)" 
+                        rows="1"
+                        maxlength="25000"></textarea>
+
+                    <div class="input-actions">
+                        <div class="input-left-tools">
+                            <!-- File Attachment Button -->
+                            <input type="file" id="fileUploadInput" style="display: none;" multiple accept=".pdf,.txt,.md,.csv,.json,.py,.js,.ts,.html,.css,.sql,.sh,.bat,.ps1,.png,.jpg,.jpeg,.webp,.gif,.mp3,.wav,.m4a,.ogg,.webm,.mp4">
+                            <button class="tool-icon-btn" id="attachFileBtn" title="Attach Document, Image, Audio, or Code file" type="button">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                </svg>
+                            </button>
+
+                            <!-- Voice Input Button -->
+                            <button class="tool-icon-btn" id="voiceInputBtn" title="Click to speak (Voice-to-Text via Whisper)" type="button">
+                                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="input-right-tools">
+                            <div class="token-counter" id="charCounter">0 / 25,000</div>
+                            <button class="send-btn" id="sendBtn" title="Send message" aria-label="Send message">
+                                <svg class="send-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                <svg class="stop-icon hidden" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <span>Zero subscription fees • Unlimited interactions • Powered by Groq LPU™</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay hidden" id="settingsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Preferences & Settings</h2>
+                <button class="icon-btn modal-close-btn" id="closeSettingsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Theme Chooser -->
+                <div class="form-group">
+                    <label>Design & Color Theme</label>
+                    <div class="theme-options-grid two-themes" id="themeGrid">
+                        <button class="theme-card-btn active" data-theme-val="dark">
+                            <div class="theme-preview-dot" style="background: linear-gradient(135deg, #070B14 50%, #38bdf8 50%);"></div>
+                            <span>Dark (Nebula)</span>
+                        </button>
+                        <button class="theme-card-btn" data-theme-val="light">
+                            <div class="theme-preview-dot" style="background: linear-gradient(135deg, #f8fafc 50%, #2563eb 50%);"></div>
+                            <span>Light Mode</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Groq API Key Input -->
+                <div class="form-group">
+                    <label for="modalApiKey">Groq API Key</label>
+                    <div class="password-input-group">
+                        <input type="password" id="modalApiKey" placeholder="gsk_..." autocomplete="off">
+                        <button class="toggle-visibility-btn" id="toggleApiKeyVisibility" type="button">👁️</button>
+                    </div>
+                    <small class="form-hint">
+                        Saved in your local <code>.env</code> file. Unlimited free tier at <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a>.
+                    </small>
+                </div>
+
+                <!-- Voice Output (TTS) Settings -->
+                <div class="form-group">
+                    <label for="ttsRateSlider">Voice Reading Speed: <span id="ttsRateValue">1.0x</span></label>
+                    <input type="range" id="ttsRateSlider" min="0.75" max="1.5" step="0.05" value="1.0">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="autoReadCheckbox" style="width: auto;">
+                        <span>Auto-read assistant responses aloud (Hands-free voice chat)</span>
+                    </label>
+                </div>
+
+                <!-- Custom System Instructions -->
+                <div class="form-group">
+                    <label for="modalSystemPrompt">Custom System Prompt</label>
+                    <textarea id="modalSystemPrompt" rows="3" placeholder="Optional custom instructions to guide your assistant across all conversations."></textarea>
+                </div>
+
+                <!-- Temperature Slider -->
+                <div class="form-group">
+                    <div class="slider-header">
+                        <label for="temperatureSlider">Creativity / Temperature: <span id="tempValue">0.7</span></label>
+                    </div>
+                    <input type="range" id="temperatureSlider" min="0" max="1.5" step="0.05" value="0.7">
+                    <div class="slider-labels">
+                        <span>Precise (0.0)</span>
+                        <span>Balanced (0.7)</span>
+                        <span>Creative (1.5)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveSettingsBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts: Marked (Markdown), Highlight.js, Kinetic Grid Canvas & App -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="{{ url_for('static', filename='js/kinetic-grid.js') }}?v=nebula3"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=nebula3"></script>
+</body>
+</html>
