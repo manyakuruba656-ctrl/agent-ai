@@ -102,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialization
     // --------------------------------------------------
     function init() {
+        historySearchInput.value = '';
         applyTheme(currentTheme);
         loadSessions();
         checkApiStatus();
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.configured) {
                 statusDot.className = 'status-dot connected';
-                apiStatusText.textContent = `Connected (${data.key_preview})`;
+                    apiStatusText.textContent = 'Connected';
                 missingKeyBanner.classList.add('hidden');
             } else {
                 statusDot.className = 'status-dot error';
