@@ -14,5 +14,28 @@ if (-not (Test-Path ".\.venv\Scripts\python.exe")) {
     }
 }
 
+# Locate viable Python interpreter (handles Windows Application Control policies)
+$pythonExe = $null
+
+# Check for uv-managed Python in AppData (approved path under Application Control)
+$uvPythons = @(Get-ChildItem -Path "$env:APPDATA\uv\python" -Filter "python.exe" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "Lib" } | Select-Object -ExpandProperty FullName)
+if ($uvPythons.Count -gt 0) {
+    $pythonExe = $uvPythons[0]
+}
+
+if (-not $pythonExe -and (Test-Path ".\.venv\Scripts\python.exe")) {
+    $pythonExe = ".\.venv\Scripts\python.exe"
+}
+
+if (-not $pythonExe) {
+    $pythonExe = "python"
+}
+
+$sitePackages = Join-Path (Get-Location) ".venv\Lib\site-packages"
+if (Test-Path $sitePackages) {
+    $env:PYTHONPATH = $sitePackages
+}
+
 Write-Host "[*] Launching Flask server on http://127.0.0.1:5000" -ForegroundColor Green
-& ".\.venv\Scripts\python.exe" app.py
+Write-Host "[*] Using interpreter: $pythonExe" -ForegroundColor DarkGray
+& $pythonExe app.py

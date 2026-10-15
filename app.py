@@ -1,4 +1,12 @@
 import os
+import sys
+from pathlib import Path
+
+# Add local .venv site-packages to sys.path if running under a system/uv interpreter
+_venv_site = Path(__file__).parent / ".venv" / "Lib" / "site-packages"
+if _venv_site.exists() and str(_venv_site) not in sys.path:
+    sys.path.insert(0, str(_venv_site))
+
 import io
 import json
 import base64
